@@ -498,8 +498,8 @@ def relations_of_type(reltype=None):
 @cached
 def metadata():
     """Get the current charm metadata.yaml contents as a python object"""
-    with open(os.path.join(charm_dir(), 'metadata.yaml')) as md:
-        return yaml.safe_load(md)
+    with open(os.path.join(charm_dir(), 'metadata.yaml'), 'rb') as md:
+        return yaml.safe_load(md.read().decode('ascii', 'ignore'))
 
 
 def _metadata_unit(unit):
@@ -516,8 +516,8 @@ def _metadata_unit(unit):
     joineddir = os.path.join(basedir, unitdir, 'charm', 'metadata.yaml')
     if not os.path.exists(joineddir):
         return None
-    with open(joineddir) as md:
-        return yaml.safe_load(md)
+    with open(joineddir, 'rb') as md:
+        return yaml.safe_load(md.read().decode('ascii', 'ignore'))
 
 
 @cached

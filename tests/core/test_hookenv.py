@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import json
 from subprocess import CalledProcessError
@@ -21,6 +22,20 @@ else:
 CHARM_METADATA = b"""name: testmock
 summary: test mock summary
 description: test mock description
+requires:
+    testreqs:
+        interface: mock
+provides:
+    testprov:
+        interface: mock
+peers:
+    testpeer:
+        interface: mock
+"""
+
+CHARM_METADATA_UNICODE = u"""name: testmock
+summary: test mock summary
+description: test mock description with unicode chars (💪🦄)
 requires:
     testreqs:
         interface: mock
@@ -1071,7 +1086,7 @@ class HelpersTest(TestCase):
         with patch('charmhelpers.core.hookenv.open', open_, create=True):
             with patch.dict('os.environ', {'CHARM_DIR': '/var/empty'}):
                 reltypes = set(hookenv.relation_types())
-        open_.assert_called_once_with('/var/empty/metadata.yaml')
+        open_.assert_called_once_with('/var/empty/metadata.yaml', 'rb')
         self.assertEqual(set(('testreqs', 'testprov', 'testpeer')), reltypes)
 
     def test_metadata(self):
@@ -1082,6 +1097,15 @@ class HelpersTest(TestCase):
             with patch.dict('os.environ', {'CHARM_DIR': '/var/empty'}):
                 metadata = hookenv.metadata()
         self.assertEqual(metadata, yaml.safe_load(CHARM_METADATA))
+
+    def test_metadata_unicode(self):
+        open_ = mock_open()
+        open_.return_value = io.BytesIO(CHARM_METADATA_UNICODE.encode('utf-8'))
+
+        with patch('charmhelpers.core.hookenv.open', open_, create=True):
+            with patch.dict('os.environ', {'CHARM_DIR': '/var/empty'}):
+                metadata = hookenv.metadata()
+        self.assertEqual(metadata, yaml.safe_load(CHARM_METADATA_UNICODE.encode('ascii', 'ignore')))
 
     @patch('charmhelpers.core.hookenv.relation_ids')
     @patch('charmhelpers.core.hookenv.metadata')
